@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO
 import time
 
-LED_PIN = 18  # Kullandığın GPIO pin numarasını gir
+LED_PIN = 16  # Kullandığın GPIO pin numarasını gir
 
 
 def led_yak(sure=5):
