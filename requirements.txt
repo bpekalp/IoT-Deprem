@@ -2,12 +2,12 @@ certifi==2025.4.26
 charset-normalizer==3.4.2
 click==8.1.8
 colorama==0.4.6
-comtypes==1.4.10
+comtypes==1.4.11
 gTTS==2.5.4
 idna==3.10
 pygame==2.6.1
-pypiwin32==223
 python-dotenv==1.1.0
-pywin32==310
 requests==2.32.3
+RPi.GPIO==0.7.1
+smbus2==0.5.0
 urllib3==2.4.0
