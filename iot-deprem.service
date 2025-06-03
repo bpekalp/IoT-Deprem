@@ -1,0 +1,15 @@
+[Unit]
+Description=IoT Deprem Uyarı Sistemi
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/guvenzehra/IoT-Deprem/.venv/bin/python /home/guvenzehra/IoT-Deprem/main.py
+WorkingDirectory=/home/guvenzehra/IoT-Deprem
+Restart=always
+RestartSec=5
+User=guvenzehra
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
