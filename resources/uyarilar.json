@@ -1,0 +1,22 @@
+{
+  "4": {
+    "uyari": "Hafif bir sarsıntı algılandı. Güvenli bir yerde durun ve cenin pozisyonu alın.",
+    "canta": "Deprem çantası kapının arkasındaki askılıkta.",
+    "yonlendirme": "Sarsıntının geçmesini bekleyin. Evi terk etmenizi tavsiye ediyorum."
+  },
+  "5": {
+    "uyari": "Orta şiddetli bir deprem oluyor. Dikkatli bir şekilde güvenli bir yere geçin ve cenin pozisyonu alın.",
+    "canta": "Deprem çantası gardırobun sağ alt çekmecesinde.",
+    "yonlendirme": "Sarsıntının geçmesini bekleyin ve oyalanmayın. Evi terk edin."
+  },
+  "6": {
+    "uyari": "Şiddetli deprem algılandı. Sakin kalmaya çalışın ve hayat üçgeni oluşturun. Yere yatın, başınızı koruyun.",
+    "canta": "Deprem çantası yatak odasındaki valizde.",
+    "yonlendirme": "Sarsıntı bittikten sonra evden hızlıca çıkın."
+  },
+  "7<": {
+    "uyari": "Çok şiddetli bir deprem algılandı. Sakin kalmaya çalışın, cenin pozisyonu alın ve hayat üçgeni oluşturun. Başınızı koruyun.",
+    "canta": "Deprem çantası kilerdeki en alt rafta.",
+    "yonlendirme": "Sarsıntı bittikten sonra evden hızlıca çıkın. Evin dışına çıkarken dikkatli olun, düşen nesnelere karşı tetikte olun."
+  }
+}
