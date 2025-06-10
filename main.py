@@ -1,6 +1,7 @@
 import time
 import smbus2 as smbus
 from datetime import datetime
+from alarm import alarm_cal
 
 # ADXL345 ayarları
 DEVICE_ADDRESS = 0x53
@@ -15,22 +16,14 @@ REQUIRED_COUNT = int(REQUIRED_DURATION / SAMPLE_INTERVAL)
 hareket_sayaci = 0
 ALARM_TETIKLENDI = False
 
-# Seviye Aralıkları
-DEPREM_SINIFLARI = [
-    ("0", {"x": (-999, 16), "y": (-999, 6), "z": (249, 252)}),
-    ("4", {"x": (16, 50), "y": (6, 40), "z": (231, 260)}),
-    ("5", {"x": (50, 80), "y": (40, 60), "z": (211, 270)}),
-    ("6", {"x": (80, 100), "y": (60, 80), "z": (206, 275)}),
-    ("7<", {"x": (100, 999), "y": (80, 999), "z": (-999, 999)}),
-]
+# Global kalibrasyon ofsetleri (başlangıçta 0, sonra ölçülür)
+x0, y0, z0 = 0, 0, 0
 
 
-# Sensör başlat
 def adxl345_init():
     bus.write_byte_data(DEVICE_ADDRESS, 0x2D, 0x08)
 
 
-# Sensör verisi oku
 def read_axes():
     data = bus.read_i2c_block_data(DEVICE_ADDRESS, 0x32, 6)
     x = (data[1] << 8) | data[0]
@@ -42,57 +35,78 @@ def read_axes():
     return x, y, z
 
 
-# Şiddet sınıflandırması
-def deprem_seviyesi(x, y, z):
-    for seviye, aralik in DEPREM_SINIFLARI:
-        if (
-            aralik["x"][0] <= x < aralik["x"][1]
-            and aralik["y"][0] <= y < aralik["y"][1]
-            and aralik["z"][0] <= z < aralik["z"][1]
-        ):
-            return seviye
-    return "?"
+def otomatik_kalibrasyon(num_samples=50):
+    print("📏 Kalibrasyon başlatılıyor... Lütfen sensörü sabit tutun.")
+    toplam_x = toplam_y = toplam_z = 0
+    for _ in range(num_samples):
+        x, y, z = read_axes()
+        toplam_x += x
+        toplam_y += y
+        toplam_z += z
+        time.sleep(0.05)
+    x0 = toplam_x / num_samples
+    y0 = toplam_y / num_samples
+    z0 = toplam_z / num_samples
+    print(f"✅ Kalibrasyon tamamlandı ➤ x0={round(x0)}, y0={round(y0)}, z0={round(z0)}")
+    return round(x0), round(y0), round(z0)
 
 
-# Alarm fonksiyonu (örnek simülasyon)
-def alarm_cal(sure=5):
-    print("🔔 ALARM ÇALIYOR! Süre:", sure, "saniye")
-    time.sleep(sure)
+def pga_hesapla(x, y, z):
+    delta_x = x - x0
+    delta_y = y - y0
+    delta_z = z - z0
+
+    toplam_ivme_lsb = (delta_x**2 + delta_y**2 + delta_z**2) ** 0.5
+    toplam_ivme_g = toplam_ivme_lsb * 0.0039  # 3.9 mg per LSB
+    return round(toplam_ivme_g, 6)
 
 
-# Ana döngü
+def mmi_seviyesi(pga):
+    if pga < 0.028:
+        return None
+    elif pga < 0.062:
+        return "V"
+    elif pga < 0.12:
+        return "VI"
+    elif pga < 0.22:
+        return "VII"
+    else:
+        return "VIII+"
+
+
 def main():
-    global hareket_sayaci, ALARM_TETIKLENDI
+    global hareket_sayaci, ALARM_TETIKLENDI, x0, y0, z0
     adxl345_init()
+    x0, y0, z0 = otomatik_kalibrasyon()
     print("📡 Sistem başlatıldı...\n")
 
     while True:
         x, y, z = read_axes()
+        pga = pga_hesapla(x, y, z)
+        seviye = mmi_seviyesi(pga)
         timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
-        print(f"[{timestamp}] X:{x} | Y:{y} | Z:{z}")
 
-        seviye = deprem_seviyesi(x, y, z)
+        print(
+            f"[{timestamp}] X:{x} | Y:{y} | Z:{z} | PGA: {pga}g | Seviye: {seviye or 'YOK'}"
+        )
 
-        if seviye != "0" and seviye != "?":
+        if seviye:
             hareket_sayaci += 1
-            print(
-                f"⏳ {hareket_sayaci}/{REQUIRED_COUNT} eşik üstü sınıflama (Seviye: {seviye})"
-            )
+            print(f"⏳ {hareket_sayaci}/{REQUIRED_COUNT} eşik üstü hareket")
         else:
             hareket_sayaci = 0
 
         if hareket_sayaci >= REQUIRED_COUNT and not ALARM_TETIKLENDI:
-            print(f"\n🚨 [{timestamp}] DEPREM ALGILANDI ➤ Şiddet: {seviye}")
+            print(f"\n🚨 [{timestamp}] DEPREM ALGILANDI ➤ Şiddet (MMI): {seviye}")
             alarm_cal(5)
             ALARM_TETIKLENDI = True
             hareket_sayaci = 0
-            time.sleep(10)  # alarm sonrası bekleme süresi
+            time.sleep(10)
             ALARM_TETIKLENDI = False
 
         time.sleep(SAMPLE_INTERVAL)
 
 
-# Çalıştır
 if __name__ == "__main__":
     try:
         main()
