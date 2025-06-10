@@ -2,6 +2,11 @@ import time
 import smbus2 as smbus
 from datetime import datetime
 from alarm import alarm_cal
+from aydinlatma import led_yak  # Import the LED function
+from yonlendirme import yurut_json  # Import the guidance function
+from posta import deprem_mail_gonder  # Import the email function
+import os  # To access environment variables for email credentials
+
 
 # ADXL345 ayarları
 DEVICE_ADDRESS = 0x53
@@ -18,6 +23,11 @@ ALARM_TETIKLENDI = False
 
 # Global kalibrasyon ofsetleri (başlangıçta 0, sonra ölçülür)
 x0, y0, z0 = 0, 0, 0
+
+# Email credentials (from environment variables)
+SENDER_EMAIL = "b.pekalp@gmail.com"  # Replace with your sender email
+GMAIL_SIFRE = os.getenv("GMAIL_SIFRE")  # Ensure this is set in your environment
+TARGET_EMAIL = "zzehrakr48@gmail.com"  # Replace with your target email
 
 
 def adxl345_init():
@@ -98,10 +108,38 @@ def main():
 
         if hareket_sayaci >= REQUIRED_COUNT and not ALARM_TETIKLENDI:
             print(f"\n🚨 [{timestamp}] DEPREM ALGILANDI ➤ Şiddet (MMI): {seviye}")
+
+            # 1. Alarm çal
+            print("🔊 Alarm çalıyor...")
             alarm_cal(5)
+
+            # 2. Aydınlatmayı yak
+            print("💡 Aydınlatma açılıyor...")
+            led_yak(10)
+
+            # 3. Yönlendirme mesajlarını seslendir
+            if seviye:
+                print("🗣️ Yönlendirme mesajları seslendiriliyor...")
+                yurut_json(seviye)
+            else:
+                print("⚠️ Deprem şiddeti belirlenemediği için yönlendirme yapılamıyor.")
+
+            # 4. E-posta gönder
+            if GMAIL_SIFRE:
+                try:
+                    print("📧 E-posta gönderiliyor...")
+                    deprem_mail_gonder(SENDER_EMAIL, GMAIL_SIFRE, TARGET_EMAIL)
+                    print("✅ E-posta başarıyla gönderildi.")
+                except Exception as e:
+                    print(f"❌ E-posta gönderimi başarısız: {e}")
+            else:
+                print(
+                    "⚠️ GMAIL_SIFRE ortam değişkeni ayarlanmadığı için e-posta gönderilemedi."
+                )
+
             ALARM_TETIKLENDI = True
             hareket_sayaci = 0
-            time.sleep(10)
+            time.sleep(10)  # A brief pause after triggering actions
             ALARM_TETIKLENDI = False
 
         time.sleep(SAMPLE_INTERVAL)
