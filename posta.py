@@ -9,8 +9,8 @@ load_dotenv()
 
 def deprem_mail_gonder(gonderen, sifre, hedef):
     now = datetime.now()
-    konu = "Deprem Uyarısı"
-    mesaj = f"{now.strftime('%d.%m.%Y')} tarihi saat {now.strftime('%H:%M:%S')}’de deprem oldu."
+    konu = "IoT Deprem Uyarısı"
+    mesaj = f"{now.strftime('%d.%m.%Y')} tarihi saat {now.strftime('%H:%M:%S')}'de IoT cihazı deprem algıladı."
 
     msg = MIMEText(mesaj)
     msg["Subject"] = konu
