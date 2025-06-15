@@ -104,7 +104,10 @@ def main():
             hareket_sayaci += 1
             print(f"⏳ {hareket_sayaci}/{REQUIRED_COUNT} eşik üstü hareket")
         else:
-            hareket_sayaci = 0
+            if hareket_sayaci >= 2:
+                hareket_sayaci -= 2
+            else:
+                hareket_sayaci = 0
 
         if hareket_sayaci >= REQUIRED_COUNT and not ALARM_TETIKLENDI:
             print(f"\n🚨 [{timestamp}] DEPREM ALGILANDI ➤ Şiddet (MMI): {seviye}")
