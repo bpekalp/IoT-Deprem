@@ -2,10 +2,10 @@ import time
 import smbus2 as smbus
 from datetime import datetime
 from alarm import alarm_cal
-from aydinlatma import led_yak  # Import the LED function
-from yonlendirme import yurut_json  # Import the guidance function
-from posta import deprem_mail_gonder  # Import the email function
-import os  # To access environment variables for email credentials
+from aydinlatma import led_yak
+from yonlendirme import yurut_json
+from posta import deprem_mail_gonder
+import os
 
 
 # ADXL345 ayarları
@@ -24,10 +24,10 @@ ALARM_TETIKLENDI = False
 # Global kalibrasyon ofsetleri (başlangıçta 0, sonra ölçülür)
 x0, y0, z0 = 0, 0, 0
 
-# Email credentials (from environment variables)
-SENDER_EMAIL = "b.pekalp@gmail.com"  # Replace with your sender email
-GMAIL_SIFRE = os.getenv("GMAIL_SIFRE")  # Ensure this is set in your environment
-TARGET_EMAIL = "zzehrakr48@gmail.com"  # Replace with your target email
+# Email bilgileri
+SENDER_EMAIL = "b.pekalp@gmail.com"
+GMAIL_SIFRE = os.getenv("GMAIL_SIFRE")
+TARGET_EMAIL = "zzehrakr48@gmail.com"
 
 
 def adxl345_init():
@@ -67,7 +67,7 @@ def pga_hesapla(x, y, z):
     delta_z = z - z0
 
     toplam_ivme_lsb = (delta_x**2 + delta_y**2 + delta_z**2) ** 0.5
-    toplam_ivme_g = toplam_ivme_lsb * 0.0039  # 3.9 mg per LSB
+    toplam_ivme_g = toplam_ivme_lsb * 0.0039
     return round(toplam_ivme_g, 6)
 
 
@@ -139,7 +139,7 @@ def main():
 
             ALARM_TETIKLENDI = True
             hareket_sayaci = 0
-            time.sleep(10)  # A brief pause after triggering actions
+            time.sleep(10)
             ALARM_TETIKLENDI = False
 
         time.sleep(SAMPLE_INTERVAL)
