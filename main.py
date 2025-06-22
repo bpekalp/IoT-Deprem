@@ -72,13 +72,13 @@ def pga_hesapla(x, y, z):
 
 
 def mmi_seviyesi(pga):
-    if pga < 0.028:
+    if pga < 0.0276:
         return None
-    elif pga < 0.062:
+    elif pga < 0.115:
         return "V"
-    elif pga < 0.12:
+    elif pga < 0.215:
         return "VI"
-    elif pga < 0.22:
+    elif pga < 0.401:
         return "VII"
     else:
         return "VIII+"
