@@ -21,7 +21,7 @@ REQUIRED_COUNT = int(REQUIRED_DURATION / SAMPLE_INTERVAL)
 hareket_sayaci = 0
 ALARM_TETIKLENDI = False
 
-# Global kalibrasyon ofsetleri (başlangıçta 0, sonra ölçülür)
+# Global kalibrasyon ofsetleri
 x0, y0, z0 = 0, 0, 0
 
 # Email bilgileri
@@ -90,6 +90,8 @@ def main():
     x0, y0, z0 = otomatik_kalibrasyon()
     print("📡 Sistem başlatıldı...\n")
 
+    max_pga_list = []  # Eşik aşan ivme değerlerini saklayacak liste
+
     while True:
         x, y, z = read_axes()
         pga = pga_hesapla(x, y, z)
@@ -102,15 +104,22 @@ def main():
 
         if seviye:
             hareket_sayaci += 1
+            max_pga_list.append(pga)
             print(f"⏳ {hareket_sayaci}/{REQUIRED_COUNT} eşik üstü hareket")
         else:
             if hareket_sayaci >= 2:
                 hareket_sayaci -= 2
             else:
                 hareket_sayaci = 0
+            max_pga_list.clear()  # Eşik altına düşerse liste temizlenir
 
         if hareket_sayaci >= REQUIRED_COUNT and not ALARM_TETIKLENDI:
-            print(f"\n🚨 [{timestamp}] DEPREM ALGILANDI ➤ Şiddet (MMI): {seviye}")
+            en_yuksek_pga = max(max_pga_list)
+            en_yuksek_seviye = mmi_seviyesi(en_yuksek_pga)
+
+            print(
+                f"\n🚨 [{timestamp}] DEPREM ALGILANDI ➤ En Yüksek Şiddet (MMI): {en_yuksek_seviye} | Maks. PGA: {round(en_yuksek_pga, 6)}g"
+            )
 
             # 1. Alarm çal
             print("🔊 Alarm çalıyor...")
@@ -121,9 +130,9 @@ def main():
             led_yak(10)
 
             # 3. Yönlendirme mesajlarını seslendir
-            if seviye:
+            if en_yuksek_seviye:
                 print("🗣️ Yönlendirme mesajları seslendiriliyor...")
-                yurut_json(seviye)
+                yurut_json(en_yuksek_seviye)
             else:
                 print("⚠️ Deprem şiddeti belirlenemediği için yönlendirme yapılamıyor.")
 
@@ -142,6 +151,7 @@ def main():
 
             ALARM_TETIKLENDI = True
             hareket_sayaci = 0
+            max_pga_list.clear()
             time.sleep(10)
             ALARM_TETIKLENDI = False
 
